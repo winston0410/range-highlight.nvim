@@ -45,8 +45,9 @@ local function add_highlight()
     -- print('check result', text, start_line, end_line)
     if start_line < 1 or end_line < 1 then return end
 	if end_line < start_line then
-		print('check backward range values', start_line, end_line)
 		start_line, end_line = end_line, start_line
+		start_line = start_line - 1
+		end_line = end_line + 1
 	end
     -- -- if cache[1] == start_line and cache[2] == end_line then return end
     if cache[1] and cache[2] then
