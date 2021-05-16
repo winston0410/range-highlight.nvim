@@ -7,33 +7,56 @@ local function cleanup()
     cache = {}
 end
 
-local function add_highlight()
-    local text = vim.fn.getcmdline()
-    local index = 1
-    local start_line, end_line = nil, nil
+local function shorthand_range(text)
+    local match = string.match(text, "^,(%d+)")
+    if match == nil then return false end
+    local current_line = vim.api.nvim_win_get_cursor(0)[1]
+    return true, current_line - 1, tonumber(match)
+end
+--
+local function absolute_range(text)
     local arr = {}
+    local index = 1
     for value in string.gmatch(text, "%d+") do
-        arr[index] = value
+        arr[index] = tonumber(value)
         index = index + 1
         if index > 2 then break end
     end
 
-	if #arr == 0 then return end
+    if #arr == 0 then return false end
 
-    start_line, end_line = tonumber(arr[1]) - 1, tonumber(arr[2])
+    if arr[2] == nil then arr[2] = arr[1] + 1 end
 
-    if end_line == nil then end_line = start_line + 1 end
+    return true, arr[1] - 1, arr[2]
+end
+
+local function add_highlight()
+    local text = vim.fn.getcmdline()
+    local start_line, end_line, has_handled
+    local handlers = {shorthand_range, absolute_range}
+
+    for _, callback in ipairs(handlers) do
+        has_handled, start_line, end_line = callback(text)
+        if has_handled then break end
+    end
+
+	if not has_handled then return end
+
+    -- print('check result', text, start_line, end_line)
     if start_line < 1 or end_line < 1 then return end
-    -- if cache[1] == start_line and cache[2] == end_line then return end
+	if end_line < start_line then
+		print('check backward range values', start_line, end_line)
+		start_line, end_line = end_line, start_line
+	end
+    -- -- if cache[1] == start_line and cache[2] == end_line then return end
     if cache[1] and cache[2] then
         if cache[1] ~= start_line or cache[2] ~= end_line then
             v.nvim_buf_clear_namespace(0, ns, cache[1], cache[2])
         end
     end
-    if end_line < start_line then return end
     cache[1], cache[2] = start_line, end_line
     vim.highlight.range(0, ns, opts.highlight, {start_line, 0}, {end_line, 0},
-                        'V', false)
+    'V', false)
     vim.cmd('redraw')
 end
 
