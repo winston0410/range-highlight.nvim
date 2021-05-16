@@ -2,6 +2,8 @@
 
 An extremely lightweight plugin (~ 60loc) that hightlights ranges you have entered in commandline.
 
+![Demo for using range-highlight](./demo.gif)
+
 ## Installation
 
 ### `paq.nvim`
