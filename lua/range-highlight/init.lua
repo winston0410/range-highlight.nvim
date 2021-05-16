@@ -24,7 +24,7 @@ local function add_highlight()
     if end_line == nil then end_line = start_line + 1 end
     if start_line < 1 or end_line < 1 then return end
     -- if cache[1] == start_line and cache[2] == end_line then return end
-    if cache[1] ~= nil and cache[2] ~= nil then
+    if cache[1] and cache[2] then
         if cache[1] ~= start_line or cache[2] ~= end_line then
             vim.api.nvim_buf_clear_namespace(0, ns, cache[1], cache[2])
         end
