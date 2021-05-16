@@ -4,6 +4,18 @@ An extremely lightweight plugin (~ 60loc) that hightlights ranges you have enter
 
 ![Demo for using range-highlight](./demo.gif)
 
+## Features
+
+- Single line range highlight (`:10`)
+
+- Absolute range highlight (`:20,15`)
+
+- Backward range highlight (`:20,15`)
+
+- Shorthand range highlight (`:,15`)
+
+- Relative range highlight (`:+5,-2`) (**WIP**)
+
 ## Installation
 
 ### `paq.nvim`
