@@ -7,54 +7,68 @@ local function cleanup()
     cache = {}
 end
 
-local function shorthand_range(text)
-    local match = string.match(text, "^,(%d+)")
-    if match == nil then return false end
+local function get_range(text)
+    local start_line, end_line = 0, 0
     local current_line = vim.api.nvim_win_get_cursor(0)[1]
-    return true, current_line - 1, tonumber(match)
-end
 
-local function relative_range(text)
-	local arr, index = {}, 1
+    local start_index, end_index, start_dot, start_anchor, start_operator,
+          start_increment, end_dot, end_anchor, end_operator, end_increment =
+        string.find(text, "(%.?)(%d*)([+-]?)(%d*),?(%.?)(%d*)([+-]?)(%d*)")
 
-	if #arr == 0  then return false end
-end
+    if start_index == 0 or end_index == 0 then return false end
 
-local function absolute_range(text)
-    local arr = {}
-    local index = 1
-    for value in string.gmatch(text, "%d+") do
-        arr[index] = tonumber(value)
-        index = index + 1
-        if index > 2 then break end
+    if start_dot == "" and start_anchor == "" and start_operator == "" and
+        start_increment == "" then start_line = current_line end
+
+    if start_dot ~= "" then start_line = current_line end
+
+    if start_anchor ~= "" then
+        start_line = start_line + tonumber(start_anchor)
     end
 
-    if #arr == 0 then return false end
+    if start_increment ~= "" then
+        if start_operator ~= "" then
+            start_line = start_line + tonumber(start_operator .. start_increment)
+        else
+            start_line = start_line + tonumber(start_increment)
+        end
+    end
 
-    if arr[2] == nil then arr[2] = arr[1] end
+    start_line = start_line - 1
 
-    return true, arr[1] - 1, arr[2]
+    if end_dot ~= "" then end_line = current_line end
+
+    if end_anchor ~= "" then end_line = end_line + tonumber(end_anchor) end
+
+    if end_increment ~= "" then
+        if end_operator ~= "" then
+            end_line = end_line + tonumber(end_operator .. end_increment)
+        else
+            end_line = end_line + tonumber(end_increment)
+        end
+    end
+
+    if end_line == 0 then
+        print('catch')
+        end_line = start_line + 1
+    end
+
+    return true, start_line, end_line
+
 end
 
 local function add_highlight()
     local text = vim.fn.getcmdline()
-    local start_line, end_line, has_handled
-    local handlers = {shorthand_range, relative_range, absolute_range}
 
-    for _, callback in ipairs(handlers) do
-        has_handled, start_line, end_line = callback(text)
-        if has_handled then break end
+    local has_number, start_line, end_line = get_range(text)
+
+    if not has_number then return end
+
+    if end_line < start_line then
+        start_line, end_line = end_line, start_line
+        start_line = start_line - 1
+        end_line = end_line + 1
     end
-
-	if not has_handled then return end
-
-    -- print('check result', text, start_line, end_line)
-    if start_line < 1 or end_line < 1 then return end
-	if end_line < start_line then
-		start_line, end_line = end_line, start_line
-		start_line = start_line - 1
-		end_line = end_line + 1
-	end
     -- -- if cache[1] == start_line and cache[2] == end_line then return end
     if cache[1] and cache[2] then
         if cache[1] ~= start_line or cache[2] ~= end_line then
@@ -63,19 +77,19 @@ local function add_highlight()
     end
     cache[1], cache[2] = start_line, end_line
     vim.highlight.range(0, ns, opts.highlight, {start_line, 0}, {end_line, 0},
-    'V', false)
+                        'V', false)
     vim.cmd('redraw')
 end
 
 local function setup(user_opts)
     opts = vim.tbl_extend('force', opts, user_opts or {})
     v.nvim_exec([[ 
-	augroup Ranger
-	autocmd!
-	au CmdlineChanged * lua require('range-highlight').add_highlight()
-	au CmdlineLeave * lua require('range-highlight').cleanup()
-	augroup END
-	]], true)
+		augroup Ranger
+		autocmd!
+		au CmdlineChanged * lua require('range-highlight').add_highlight()
+		au CmdlineLeave * lua require('range-highlight').cleanup()
+		augroup END
+		]], true)
 end
 
 return {setup = setup, cleanup = cleanup, add_highlight = add_highlight}
