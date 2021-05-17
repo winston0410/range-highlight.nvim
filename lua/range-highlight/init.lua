@@ -13,7 +13,13 @@ local function shorthand_range(text)
     local current_line = vim.api.nvim_win_get_cursor(0)[1]
     return true, current_line - 1, tonumber(match)
 end
---
+
+local function relative_range(text)
+	local arr, index = {}, 1
+
+	if #arr == 0  then return false end
+end
+
 local function absolute_range(text)
     local arr = {}
     local index = 1
@@ -33,7 +39,7 @@ end
 local function add_highlight()
     local text = vim.fn.getcmdline()
     local start_line, end_line, has_handled
-    local handlers = {shorthand_range, absolute_range}
+    local handlers = {shorthand_range, relative_range, absolute_range}
 
     for _, callback in ipairs(handlers) do
         has_handled, start_line, end_line = callback(text)
