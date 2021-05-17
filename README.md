@@ -14,7 +14,11 @@ An extremely lightweight plugin (~ 60loc) that hightlights ranges you have enter
 
 - Shorthand range highlight (`:,15`)
 
-- Relative range highlight (`:+5,-2`) (**WIP**)
+- Relative range highlight (`:+5,-2`)
+
+- Dot range highlight (`:.,-2`, `:5,.`)
+
+- Last line and whole file highlight (`:4,$`, `:%`) (**WIP**)
 
 ## Installation
 
