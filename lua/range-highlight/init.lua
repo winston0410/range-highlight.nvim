@@ -25,7 +25,7 @@ local function absolute_range(text)
 
     if #arr == 0 then return false end
 
-    if arr[2] == nil then arr[2] = arr[1] + 1 end
+    if arr[2] == nil then arr[2] = arr[1] end
 
     return true, arr[1] - 1, arr[2]
 end
