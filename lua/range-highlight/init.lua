@@ -11,9 +11,9 @@ local function get_range(text)
     local start_line, end_line = 0, 0
     local current_line = vim.api.nvim_win_get_cursor(0)[1]
 
-    local start_index, end_index, start_dot, start_anchor, start_operator,
-          start_increment, end_dot, end_anchor, end_operator, end_increment =
-        string.find(text, "(%.?)(%d*)([+-]?)(%d*),?(%.?)(%d*)([+-]?)(%d*)")
+    local start_index, end_index, start_special, start_dot, start_anchor, start_operator,
+          start_increment, end_special, end_dot, end_anchor, end_operator, end_increment =
+        string.find(text, "([%%%$]?)(%.?)(%d*)([+-]?)(%d*),?([%%%$]?)(%.?)(%d*)([+-]?)(%d*)")
 
     if start_index == 0 or end_index == 0 then return false end
 
