@@ -49,7 +49,6 @@ local function get_range(text)
     end
 
     if end_line == 0 then
-        print('catch')
         end_line = start_line + 1
     end
 
