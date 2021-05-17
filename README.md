@@ -31,7 +31,7 @@ This is the default configuration. It is likely that you don't need to change an
 
 ```lua
 require("range-highlight").setup {
-highlight: "Visual"
+    highlight = "Visual"
 }
 ```
 
