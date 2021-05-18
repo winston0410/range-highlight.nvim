@@ -22,25 +22,16 @@ local function get_range(text)
         return true, 0, line_count
     elseif start_special == '$' then
         start_line = line_count
-    end
-
-    if start_index == 0 or end_index == 0 then return false end
-
-    if start_dot ~= "" then start_line = current_line end
-
-    if start_anchor ~= "" then
-        start_line = start_line + tonumber(start_anchor)
     else
         start_line = current_line
     end
 
+    if start_index == 0 or end_index == 0 then return false end
+
+    if start_anchor ~= "" then start_line = tonumber(start_anchor) end
+
     if start_increment ~= "" then
-        if start_operator ~= "" then
-            start_line = start_line +
-                             tonumber(start_operator .. start_increment)
-        else
-            start_line = start_line + tonumber(start_increment)
-        end
+        start_line = start_line + tonumber(start_operator .. start_increment)
     end
 
     start_line = start_line - 1
@@ -55,16 +46,10 @@ local function get_range(text)
         end_line = current_line
     end
 
-    if end_anchor ~= "" then
-        end_line = tonumber(end_anchor)
-	end
+    if end_anchor ~= "" then end_line = tonumber(end_anchor) end
 
     if end_increment ~= "" then
-        if end_operator ~= "" then
-            end_line = end_line + tonumber(end_operator .. end_increment)
-        else
-            end_line = end_line + tonumber(end_increment)
-        end
+        end_line = end_line + tonumber(end_operator .. end_increment)
     end
 
     return true, start_line, end_line
