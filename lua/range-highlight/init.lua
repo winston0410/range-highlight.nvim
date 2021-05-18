@@ -10,25 +10,33 @@ end
 local function get_range(text)
     local start_line, end_line = 0, 0
     local current_line = vim.api.nvim_win_get_cursor(0)[1]
+    local line_count = vim.api.nvim_buf_line_count(0)
 
-    local start_index, end_index, start_dot, start_anchor, start_operator,
-          start_increment, end_dot, end_anchor, end_operator, end_increment =
-        string.find(text, "(%.?)(%d*)([+-]?)(%d*),?(%.?)(%d*)([+-]?)(%d*)")
+    local start_index, end_index, start_special, start_dot, start_anchor,
+          start_operator, start_increment, end_special, end_dot, end_anchor,
+          end_operator, end_increment = string.find(text,
+                                                    "([%%%$]?)(%.?)(%d*)([+-]?)(%d*),?([%%%$]?)(%.?)(%d*)([+-]?)(%d*)")
+
+    if start_special == '%' then
+        return true, 0, line_count
+    elseif start_special == '$' then
+        start_line = line_count
+    end
 
     if start_index == 0 or end_index == 0 then return false end
-
-    if start_dot == "" and start_anchor == "" and start_operator == "" and
-        start_increment == "" then start_line = current_line end
 
     if start_dot ~= "" then start_line = current_line end
 
     if start_anchor ~= "" then
         start_line = start_line + tonumber(start_anchor)
+    else
+        start_line = current_line
     end
 
     if start_increment ~= "" then
         if start_operator ~= "" then
-            start_line = start_line + tonumber(start_operator .. start_increment)
+            start_line = start_line +
+                             tonumber(start_operator .. start_increment)
         else
             start_line = start_line + tonumber(start_increment)
         end
@@ -36,9 +44,19 @@ local function get_range(text)
 
     start_line = start_line - 1
 
+    if end_special == "%" then
+        return true, 0, line_count
+    elseif end_special == "$" then
+        end_line = line_count
+    end
+
     if end_dot ~= "" then end_line = current_line end
 
-    if end_anchor ~= "" then end_line = end_line + tonumber(end_anchor) end
+    if end_anchor ~= "" then
+        end_line = end_line + tonumber(end_anchor)
+    else
+        end_line = current_line
+    end
 
     if end_increment ~= "" then
         if end_operator ~= "" then
@@ -48,9 +66,7 @@ local function get_range(text)
         end
     end
 
-    if end_line == 0 then
-        end_line = start_line + 1
-    end
+    if end_line == 0 then end_line = start_line + 1 end
 
     return true, start_line, end_line
 
@@ -62,6 +78,8 @@ local function add_highlight()
     local has_number, start_line, end_line = get_range(text)
 
     if not has_number then return end
+
+    print('check values', text, start_line, end_line)
 
     if end_line < start_line then
         start_line, end_line = end_line, start_line
