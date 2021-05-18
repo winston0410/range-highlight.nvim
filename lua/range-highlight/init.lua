@@ -17,10 +17,11 @@ local function get_range(text)
           end_operator, end_increment = string.find(text,
                                                     "([%%%$]?)(%.?)(%d*)([+-]?)(%d*),?([%%%$]?)(%.?)(%d*)([+-]?)(%d*)")
 
-    print('check line', line_count)
-    -- 		if start_special == '%' then 
-    -- 
-    -- 		end
+    if start_special == '%' then
+        return true, 0, line_count
+    elseif start_special == '$' then
+        start_line = line_count
+    end
 
     if start_index == 0 or end_index == 0 then return false end
 
@@ -44,11 +45,13 @@ local function get_range(text)
 
     start_line = start_line - 1
 
-    if end_special ~= "" then
-        end_line = line_count
-    else
-        if end_dot ~= "" then end_line = current_line end
+    if end_special == "%" then
+		return true, 0, line_count
+    elseif end_special == "$" then
+		end_line = line_count
     end
+
+	if end_dot ~= "" then end_line = current_line end
 
     if end_anchor ~= "" then end_line = end_line + tonumber(end_anchor) end
 
