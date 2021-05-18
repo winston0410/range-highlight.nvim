@@ -13,9 +13,10 @@ local function get_range(text)
     local line_count = vim.api.nvim_buf_line_count(0)
 
     local start_index, end_index, start_special, start_dot, start_anchor,
-          start_operator, start_increment, separator, end_special, end_dot, end_anchor,
-          end_operator, end_increment = string.find(text,
-                                                    "([%%%$]?)(%.?)(%d*)([+-]?)(%d*)(,?)([%%%$]?)(%.?)(%d*)([+-]?)(%d*)")
+          start_operator, start_increment, separator, end_special, end_dot,
+          end_anchor, end_operator, end_increment =
+        string.find(text,
+                    "([%%%$]?)(%.?)(%d*)([+-]?)(%d*)(,?)([%%%$]?)(%.?)(%d*)([+-]?)(%d*)")
 
     if start_special == '%' then
         return true, 0, line_count
@@ -44,23 +45,19 @@ local function get_range(text)
 
     start_line = start_line - 1
 
-	if separator == "" then
-		return true, start_line, start_line + 1
-	end
+    if separator == "" then return true, start_line, start_line + 1 end
 
     if end_special == "%" then
         return true, 0, line_count
     elseif end_special == "$" then
         end_line = line_count
-    end
-
-    if end_dot ~= "" then end_line = current_line end
-
-    if end_anchor ~= "" then
-        end_line = end_line + tonumber(end_anchor)
     else
         end_line = current_line
     end
+
+    if end_anchor ~= "" then
+        end_line = tonumber(end_anchor)
+	end
 
     if end_increment ~= "" then
         if end_operator ~= "" then
@@ -80,6 +77,8 @@ local function add_highlight()
     local has_number, start_line, end_line = get_range(text)
 
     if not has_number then return end
+
+    -- print('check values', text, start_line, end_line)
 
     if end_line < start_line then
         start_line, end_line = end_line, start_line
