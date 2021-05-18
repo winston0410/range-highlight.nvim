@@ -16,7 +16,7 @@ local function get_range(text)
           start_operator, start_increment, separator, end_special,
           end_anchor, end_operator, end_increment =
         string.find(text,
-                    "([%%%$]?)(%d*)([+-]?)(%d*)(,?)([%%%$]?)(%d*)([+-]?)(%d*)")
+                    "^([%%%$]?)(%d*)([+-]?)(%d*)(,?)([%%%$]?)(%d*)([+-]?)(%d*)")
 
     if start_special == '%' then
         return true, 0, line_count
