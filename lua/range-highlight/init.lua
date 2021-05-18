@@ -25,13 +25,12 @@ local function get_range(text)
 
     if start_index == 0 or end_index == 0 then return false end
 
-    if start_dot == "" and start_anchor == "" and start_operator == "" and
-        start_increment == "" then start_line = current_line end
-
     if start_dot ~= "" then start_line = current_line end
 
     if start_anchor ~= "" then
         start_line = start_line + tonumber(start_anchor)
+    else
+        start_line = current_line
     end
 
     if start_increment ~= "" then
@@ -46,14 +45,18 @@ local function get_range(text)
     start_line = start_line - 1
 
     if end_special == "%" then
-		return true, 0, line_count
+        return true, 0, line_count
     elseif end_special == "$" then
-		end_line = line_count
+        end_line = line_count
     end
 
-	if end_dot ~= "" then end_line = current_line end
+    if end_dot ~= "" then end_line = current_line end
 
-    if end_anchor ~= "" then end_line = end_line + tonumber(end_anchor) end
+    if end_anchor ~= "" then
+        end_line = end_line + tonumber(end_anchor)
+    else
+        end_line = current_line
+    end
 
     if end_increment ~= "" then
         if end_operator ~= "" then
@@ -75,6 +78,8 @@ local function add_highlight()
     local has_number, start_line, end_line = get_range(text)
 
     if not has_number then return end
+
+    print('check values', text, start_line, end_line)
 
     if end_line < start_line then
         start_line, end_line = end_line, start_line
