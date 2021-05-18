@@ -12,21 +12,28 @@ local function get_range(text)
     local current_line = vim.api.nvim_win_get_cursor(0)[1]
     local line_count = vim.api.nvim_buf_line_count(0)
 
-    local start_index, end_index, start_special, start_anchor,
-          start_operator, start_increment, separator, end_special,
-          end_anchor, end_operator, end_increment =
-        string.find(text,
-                    "^([%%%$]?)(%d*)([+-]?)(%d*)(,?)([%%%$]?)(%d*)([+-]?)(%d*)")
+    local start_index, end_index, start_special, start_anchor, start_operator,
+          start_increment, separator, end_special, end_anchor, end_operator,
+          end_increment = string.find(text,
+                                      "^([%%%$]?)(%d*)([+-]?)(%d*)(,?)([%%%$]?)(%d*)([+-]?)(%d*)")
 
     if start_special == '%' then
         return true, 0, line_count
     elseif start_special == '$' then
         start_line = line_count
     else
+        local mark = string.match(text, "^'(%l)")
         start_line = current_line
+        if mark then
+            local mark_line = vim.api.nvim_buf_get_mark(0, mark)[1]
+            if mark_line ~= 0 then 
+				start_line = mark_line
+				start_index = 1
+			end
+        end
     end
 
-    if start_index == 0 or end_index == 0 then return false end
+    if start_index == 0 then return false end
 
     if start_anchor ~= "" then start_line = tonumber(start_anchor) end
 
