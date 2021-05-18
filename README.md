@@ -18,7 +18,9 @@ An extremely lightweight plugin (~ 60loc) that hightlights ranges you have enter
 
 - Dot range highlight (`:.,-2`, `:5,.`)
 
-- Last line and whole file highlight (`:4,$`, `:%`) (**WIP**)
+- Last line and whole file highlight (`:4,$`, `:%`)
+
+- Pattern range highlight (`:/hello/d`) (**WIP**)
 
 ## Installation
 
