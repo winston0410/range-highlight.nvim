@@ -10,6 +10,8 @@ An extremely lightweight plugin (~ 60loc) that hightlights ranges you have enter
 
 - Absolute range highlight (`:20,15`)
 
+- Semicolon separated range highlight (`:20;15`)
+
 - Backward range highlight (`:20,15`)
 
 - Shorthand range highlight (`:,15`)
