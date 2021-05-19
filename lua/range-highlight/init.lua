@@ -27,6 +27,8 @@ local function get_range(text)
             local mark_line = vim.api.nvim_buf_get_mark(0, start_mark)[1]
             if mark_line ~= 0 then
                 start_line = mark_line
+            else
+                return false
             end
         else
             start_line = current_line
@@ -60,6 +62,8 @@ local function get_range(text)
             local mark_line = vim.api.nvim_buf_get_mark(0, end_mark)[1]
             if mark_line ~= 0 then
                 end_line = mark_line
+            else
+                return false
             end
         else
             end_line = current_line
@@ -82,6 +86,8 @@ local function add_highlight()
     local text = vim.fn.getcmdline()
 
     local has_number, start_line, end_line = get_range(text)
+
+    -- print('check has_number value', has_number)
 
     if not has_number then return end
 
