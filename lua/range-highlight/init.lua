@@ -10,6 +10,7 @@ local function cleanup()
 end
 
 local function get_range(text)
+	print('check count', vim.v.count)
     local start_line, end_line, start_text = 0, 0, text
     local current_line = vim.api.nvim_win_get_cursor(0)[1]
     local line_count = vim.api.nvim_buf_line_count(0)
@@ -92,6 +93,7 @@ local function add_highlight()
     if not has_number then return end
 
     -- print('check values', text, start_line, end_line)
+	if start_line < 0 or end_line < 0 then return end
 
     if end_line < start_line then
         start_line, end_line = end_line, start_line
