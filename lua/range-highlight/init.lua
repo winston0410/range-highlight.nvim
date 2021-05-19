@@ -14,13 +14,23 @@ local function get_range(text)
     local current_line = vim.api.nvim_win_get_cursor(0)[1]
     local line_count = vim.api.nvim_buf_line_count(0)
 
-    local start_index, end_index, start_special, start_anchor, end_special,
-          end_anchor = string.find(text, "^([%%%$]?)(%d*),?([%%%$]?)(%d*)")
+    local start_index, _, start_special, start_mark, start_anchor, end_special,
+          end_mark, end_anchor = string.find(text,
+                                             "^([%%%$']?)(%l?)(%d*),?([%%%$']?)(%l?)(%d*)")
 
     if start_special == '%' then
         return true, 0, line_count
     elseif start_special == '$' then
         start_line = line_count
+    elseif start_special == "'" then
+        if start_mark ~= "" then
+            local mark_line = vim.api.nvim_buf_get_mark(0, start_mark)[1]
+            if mark_line ~= 0 then
+                start_line = mark_line
+            end
+        else
+            start_line = current_line
+        end
     else
         start_line = current_line
     end
@@ -31,9 +41,9 @@ local function get_range(text)
 
     local start_comma_index = string.find(text, ',')
 
-	if start_comma_index ~= nil then
-		start_text = string.sub(text, 1, start_comma_index)
-	end
+    if start_comma_index ~= nil then
+        start_text = string.sub(text, 1, start_comma_index)
+    end
 
     start_line = start_line + get_total_increment(start_text)
 
@@ -45,6 +55,15 @@ local function get_range(text)
         return true, 0, line_count
     elseif end_special == "$" then
         end_line = line_count
+    elseif end_special == "'" then
+        if end_mark ~= "" then
+            local mark_line = vim.api.nvim_buf_get_mark(0, end_mark)[1]
+            if mark_line ~= 0 then
+                end_line = mark_line
+            end
+        else
+            end_line = current_line
+        end
     else
         end_line = current_line
     end
