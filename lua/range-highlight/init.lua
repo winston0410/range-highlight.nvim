@@ -16,7 +16,7 @@ local function get_range(text)
 
     local start_index, _, start_special, start_mark, start_anchor, end_special,
           end_mark, end_anchor = string.find(text,
-                                             "^([%%%$']?)(%l?)(%d*),?([%%%$']?)(%l?)(%d*)")
+                                             "^([%%%$']?)(%l?)(%d*)[;,]?([%%%$']?)(%l?)(%d*)")
 
     if start_special == '%' then
         return true, 0, line_count
@@ -41,7 +41,7 @@ local function get_range(text)
 
     if start_anchor ~= "" then start_line = tonumber(start_anchor) end
 
-    local start_comma_index = string.find(text, ',')
+    local start_comma_index = string.find(text, '[;,]')
 
     if start_comma_index ~= nil then
         start_text = string.sub(text, 1, start_comma_index)
