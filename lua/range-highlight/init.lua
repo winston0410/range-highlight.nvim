@@ -10,7 +10,7 @@ local function cleanup()
 end
 
 local function get_range(text)
-	print('check count', vim.v.count)
+	-- print('check count', vim.v.count)
     local start_line, end_line, start_text = 0, 0, text
     local current_line = vim.api.nvim_win_get_cursor(0)[1]
     local line_count = vim.api.nvim_buf_line_count(0)
@@ -25,12 +25,12 @@ local function get_range(text)
         start_line = line_count
     elseif start_special == "'" then
         if start_mark ~= "" then
-            local mark_line = vim.api.nvim_buf_get_mark(0, start_mark)[1]
-            if mark_line ~= 0 then
-                start_line = mark_line
-            else
-                return false
-            end
+            -- local mark_line = vim.api.nvim_buf_get_mark(0, start_mark)[1]
+            -- if mark_line ~= 0 then
+            --     start_line = mark_line
+            -- else
+            --     return false
+            -- end
         else
             start_line = current_line
         end
