@@ -86,6 +86,10 @@ end
 local function add_highlight()
     local text = vim.fn.getcmdline()
 
+	if vim.fn.getcmdtype() ~= ':' then
+		return
+	end
+
     local has_number, start_line, end_line = get_range(text)
 
     -- print('check has_number value', has_number)
