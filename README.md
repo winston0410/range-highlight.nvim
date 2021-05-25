@@ -1,6 +1,6 @@
 # range-highlight.nvim
 
-An extremely lightweight plugin (~ 60loc) that hightlights ranges you have entered in commandline.
+An extremely lightweight plugin (~ 120loc) that hightlights ranges you have entered in commandline.
 
 ![Demo for using range-highlight](./demo.gif)
 
@@ -26,13 +26,14 @@ An extremely lightweight plugin (~ 60loc) that hightlights ranges you have enter
 
 - Last line and whole file highlight (`:4,$`, `:%`)
 
-- Pattern range highlight (`:/hello/d`) (**WIP**)
+- Pattern range highlight (`:/hello/d`, `?world?d`) 
 
 ## Installation
 
 ### `paq.nvim`
 
 ```lua
+paq{'winston0410/cmd-parser.nvim'}
 paq{'winston0410/range-highlight.nvim'}
 require'range-highlight'.setup{}
 ```
