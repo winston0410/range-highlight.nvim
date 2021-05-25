@@ -1,14 +1,20 @@
-local function get_total_increment(text)
-	local total = 0
-    for operator, increment in string.gmatch(text, "([+-])(%d*)") do
-		if increment == "" then
-			increment = 1
-		end
-		total = total + tonumber(operator .. increment)
+local function mark_to_number(start_mark)
+    return vim.api.nvim_buf_get_mark(0, string.sub(start_mark, 2, -1))[1]
+end
+
+local function search_to_number(config)
+    return function(pattern)
+        local pattern_text, search_options = string.sub(pattern, 2, -2), "n"
+        if not config.forward then search_options = "bn" end
+        local line_number = vim.api.nvim_call_function("searchpos", {
+            pattern_text, search_options
+        })[1]
+        return line_number
     end
-	return total
 end
 
 return {
-	get_total_increment = get_total_increment
+    mark_to_number = mark_to_number,
+    forward_search_to_number = search_to_number {forward = true},
+    backward_search_to_number = search_to_number {forward = false}
 }
