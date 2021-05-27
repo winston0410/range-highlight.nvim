@@ -84,7 +84,9 @@ local function add_highlight()
         start_line = start_line - 1
         end_line = end_line + 1
     end
-    -- -- if cache[1] == start_line and cache[2] == end_line then return end
+
+    if cache[1] == start_line and cache[2] == end_line then return end
+
     if cache[1] and cache[2] then
         if cache[1] ~= start_line or cache[2] ~= end_line then
             v.nvim_buf_clear_namespace(0, ns, cache[1], cache[2])
