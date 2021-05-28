@@ -1,6 +1,41 @@
 local v = vim.api
 local ns = v.nvim_create_namespace('rang-highlight')
-local opts, cache = {highlight = "Visual"}, {}
+local opts, cache = {
+    highlight = "Visual",
+    highlight_with_out_range = {
+        d = true,
+        delete = true,
+        m = true,
+        move = true,
+        y = true,
+        yank = true,
+        c = true,
+        change = true,
+        j = true,
+        join = true,
+        ["<"] = true,
+        [">"] = true,
+        s = true,
+        subsititue = true,
+        sno = true,
+        snomagic = true,
+        sm = true,
+        smagic = true,
+        ret = true,
+        retab = true,
+        t = true,
+        co = true,
+        copy = true,
+        ce = true,
+        center = true,
+        ri = true,
+        right = true,
+        le = true,
+        left = true,
+        sor = true,
+        sort = true
+    }
+}, {}
 local mark_to_number = require('range-highlight.helper').mark_to_number
 local forward_search_to_number =
     require('range-highlight.helper').forward_search_to_number
@@ -26,7 +61,13 @@ local function get_range_number(cmd)
     local line_count = vim.api.nvim_buf_line_count(0)
     local result = parse_cmd(cmd)
 
-    -- print('check start or end range', cmd, result.start_range, result.end_range)
+    -- print('check start or end range', cmd, result.command, result.start_range, result.end_range)
+    if not result.start_range then
+		if not opts.highlight_with_out_range[result.command] then
+			return -1, -1
+		end
+    end
+
     if result.start_range == "%" or result.end_range == "%" then
         return 0, line_count
     end
@@ -63,6 +104,8 @@ local function get_range_number(cmd)
     if result.end_increment then
         end_line = end_line + result.end_increment_number
     end
+
+    -- print('check at the end or transformation', cmd, result.command, result.start_range, result.end_range)
 
     start_line = start_line - 1
 
