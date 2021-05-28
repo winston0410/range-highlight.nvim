@@ -26,7 +26,7 @@ An extremely lightweight plugin (~ 120loc) that hightlights ranges you have ente
 
 - Last line and whole file highlight (`:4,$`, `:%`)
 
-- Pattern range highlight (`:/hello/d`, `?world?d`) 
+- Pattern range highlight (`:/hello/d`, `?world?d`)
 
 ## Installation
 
@@ -44,7 +44,40 @@ This is the default configuration. It is likely that you don't need to change an
 
 ```lua
 require("range-highlight").setup {
-    highlight = "Visual"
+    highlight = "Visual",
+	highlight_with_out_range = {
+        d = true,
+        delete = true,
+        m = true,
+        move = true,
+        y = true,
+        yank = true,
+        c = true,
+        change = true,
+        j = true,
+        join = true,
+        ["<"] = true,
+        [">"] = true,
+        s = true,
+        subsititue = true,
+        sno = true,
+        snomagic = true,
+        sm = true,
+        smagic = true,
+        ret = true,
+        retab = true,
+        t = true,
+        co = true,
+        copy = true,
+        ce = true,
+        center = true,
+        ri = true,
+        right = true,
+        le = true,
+        left = true,
+        sor = true,
+        sort = true
+	}
 }
 ```
 
