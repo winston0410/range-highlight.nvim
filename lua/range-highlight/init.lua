@@ -61,9 +61,11 @@ local function get_range_number(cmd)
     local line_count = vim.api.nvim_buf_line_count(0)
     local result = parse_cmd(cmd)
 
-    -- print('check start or end range', cmd, result.command, result.start_range, result.end_range)
     if not result.start_range then
+		-- print('check command', cmd, opts.highlight_with_out_range[result.command])
 		if not opts.highlight_with_out_range[result.command] then
+			v.nvim_buf_clear_namespace(0, ns, cache[1], cache[2])
+			vim.cmd "redraw"
 			return -1, -1
 		end
     end
