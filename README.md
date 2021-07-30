@@ -30,6 +30,10 @@ An extremely lightweight plugin (~ 120loc) that hightlights ranges you have ente
 
 ## Installation
 
+`range-highlight.nvim` requires a minimum version of NeoVim 0.5.
+
+You can install it using any standard Vim/NeoVim package manager. For example:
+
 ### `paq.nvim`
 
 ```lua
