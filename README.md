@@ -30,7 +30,7 @@ An extremely lightweight plugin (~ 120loc) that hightlights ranges you have ente
 
 ## Installation
 
-`range-highlight.nvim` requires a minimum version of NeoVim 0.5.
+`range-highlight.nvim` requires a minimum version of NeoVim 0.5.0.
 
 You can install it using any standard Vim/NeoVim package manager. For example:
 
@@ -84,6 +84,10 @@ require("range-highlight").setup {
 	}
 }
 ```
+
+### Range highlight not working for your command?
+
+If the range highlight doesn't work for your command, you can contribute it into the above list
 
 ## Acknowledgement
 

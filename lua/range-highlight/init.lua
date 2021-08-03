@@ -3,6 +3,7 @@ local ns = v.nvim_create_namespace("range-highlight")
 local opts, cache =
 	{
 		highlight = "Visual",
+        -- Add command that takes range here
 		highlight_with_out_range = {
 			d = true,
 			delete = true,
