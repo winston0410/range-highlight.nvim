@@ -65,7 +65,6 @@ local function get_range_number(cmd)
 		-- print('check command', cmd, opts.highlight_with_out_range[result.command])
 		if not opts.highlight_with_out_range[result.command] then
 			v.nvim_buf_clear_namespace(0, ns, 0, -1)
-			vim.cmd("redraw")
 			return -1, -1
 		end
 	end
