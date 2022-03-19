@@ -41,6 +41,17 @@ paq{'winston0410/cmd-parser.nvim'}
 paq{'winston0410/range-highlight.nvim'}
 require'range-highlight'.setup{}
 ```
+### `packer.nvim`
+
+```lua
+ use {
+    "winston0410/range-highlight.nvim",
+    requires = "winston0410/cmd-parser.nvim",
+    config = function()
+      require("range-highlight").setup { }
+    end
+  },
+```
 
 ## Configuration
 
