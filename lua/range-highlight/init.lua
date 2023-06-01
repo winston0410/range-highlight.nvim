@@ -38,6 +38,7 @@ local opts, cache =
 			sort = true,
 		},
 	}, {}
+local timer = nil
 local mark_to_number = require("range-highlight.helper").mark_to_number
 local forward_search_to_number = require("range-highlight.helper").forward_search_to_number
 local backward_search_to_number = require("range-highlight.helper").backward_search_to_number
@@ -113,12 +114,24 @@ local function get_range_number(cmd)
 	return start_line, end_line
 end
 
-local function add_highlight()
-	local text = vim.fn.getcmdline()
+local function destroy_timer()
+	if timer then
+		if timer:has_ref() then
+			timer:stop()
+			if not timer:is_closing() then
+				timer:close()
+			end
+		end
+		timer = nil
+	end
+end
 
+local function add_highlight_on_timer()
 	if vim.fn.getcmdtype() ~= ":" then
 		return
 	end
+
+	local text = vim.fn.getcmdline()
 
 	local start_line, end_line = get_range_number(text)
 
@@ -147,10 +160,26 @@ local function add_highlight()
 	vim.cmd("redraw")
 end
 
+local function add_highlight()
+	if not timer then
+		timer = vim.loop.new_timer()
+		timer:start(
+			50,
+			0,
+			vim.schedule_wrap(function()
+				destroy_timer()
+				add_highlight_on_timer()
+			end)
+		)
+	else
+		timer:again()
+	end
+end
+
 local function setup(user_opts)
 	opts = vim.tbl_extend("force", opts, user_opts or {})
 	v.nvim_exec(
-		[[ 
+		[[
 		augroup Ranger
 		autocmd!
 		au CmdlineChanged * lua require('range-highlight').add_highlight()
