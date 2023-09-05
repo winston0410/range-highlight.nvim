@@ -42,6 +42,17 @@ paq{'winston0410/range-highlight.nvim'}
 require'range-highlight'.setup{}
 ```
 
+### `lazy.nvim`
+```lua
+{
+    "winston0410/range-highlight.nvim",
+    dependencies = "winston0410/cmd-parser.nvim",
+    config = function ()
+        require("range-highlight").setup()
+    end
+}
+```
+
 ## Configuration
 
 This is the default configuration. It is likely that you don't need to change anything.
