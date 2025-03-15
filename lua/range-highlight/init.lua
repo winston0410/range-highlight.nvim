@@ -38,8 +38,8 @@ function M.setup(opts)
 
 			if mark_end_range ~= nil then
 				local line, col = unpack(vim.api.nvim_buf_get_mark(0, mark_end_range))
-				selection_end_row = line
-				selection_end_col = col
+				selection_end_row = line - 1
+				selection_end_col = col + 1
 			end
 
 			local digit_range_pattern = "^(%d*),?(%d*)(%a+)"
@@ -65,7 +65,12 @@ function M.setup(opts)
 
 			-- handle incompleted range, for example 10,2
 			if selection_end_row < selection_start_row then
-				return
+				-- only early return, if it is digit range for both start and end
+				if digit_start_range ~= nil and digit_end_range ~= nil then
+					return
+				else
+					-- TODO handle swapped start and end
+				end
 			end
 
 			-- normalize line number
