@@ -10,6 +10,79 @@ local default_opts = {
 		priority = 10,
 	},
 }
+
+---@alias RangeKind "mark" | "digit" | nil
+---@param cmd string
+---@return RangeKind, number|nil, number|nil, RangeKind, number|nil, number|nil
+local function get_range(cmd)
+	---@type number|nil
+	local selection_start_row = nil
+	---@type number|nil
+	local selection_start_col = nil
+	---@type "mark" | "digit" | nil
+	local selection_start_kind = nil
+	---@type number|nil
+	local selection_end_row = nil
+	---@type number|nil
+	local selection_end_col = nil
+	---@type "mark" | "digit" | nil
+	local selection_end_kind = nil
+
+	local patterns =
+		{ { kind = "mark", pattern = "^'(.)[,;]?'(.)(%a+)" }, { kind = "digit", pattern = "^(%d*)[,;]?(%d*)(%a+)" } }
+
+	for _, item in ipairs(patterns) do
+		if selection_start_row ~= nil and selection_end_row ~= nil then
+			break
+		end
+		local start_range, end_range, _ = cmd:match(item.pattern)
+
+		if item.kind == "mark" then
+			if start_range ~= nil then
+				local line, col = unpack(vim.api.nvim_buf_get_mark(0, start_range))
+				selection_start_row = line
+				selection_start_col = col
+				selection_start_kind = "mark"
+			end
+
+			if end_range ~= nil then
+				local line, col = unpack(vim.api.nvim_buf_get_mark(0, end_range))
+				selection_end_row = line - 1
+				selection_end_col = col
+				selection_end_kind = "mark"
+			end
+		else
+			if start_range ~= nil then
+				selection_start_row = tonumber(start_range)
+				selection_start_col = 0
+				selection_start_kind = "digit"
+			end
+
+			if end_range ~= nil then
+				selection_end_row = tonumber(end_range)
+				selection_end_col = 0
+				selection_end_kind = "digit"
+			end
+		end
+	end
+
+	if selection_start_row ~= nil and selection_end_row == nil then
+		selection_end_kind = selection_start_kind
+		selection_end_row = selection_start_row
+	end
+
+	if selection_start_row ~= nil then
+		selection_start_row = selection_start_row - 1
+	end
+
+	return selection_start_kind,
+		selection_start_row,
+		selection_start_col,
+		selection_end_kind,
+		selection_end_row,
+		selection_end_col
+end
+
 ---@param opts SetupOpts
 function M.setup(opts)
 	---@type SetupOpts
@@ -21,96 +94,53 @@ function M.setup(opts)
 			vim.api.nvim_buf_clear_namespace(ev.buf, ns_id, 0, -1)
 
 			local cmdline = vim.fn.getcmdline()
-			---@type number|nil
-			local selection_start_row = nil
-			---@type number|nil
-			local selection_start_col = nil
-			---@type number|nil
-			local selection_end_row = nil
-			---@type number|nil
-			local selection_end_col = nil
 
-			local mark_range_pattern = "^'(.),?'(.)(%a+)"
-			---@type string|nil, string|nil, string|nil
-			local mark_start_range, mark_end_range, _ = cmdline:match(mark_range_pattern)
+			-- handle range like :15
 
-			if mark_start_range ~= nil then
-				local line, col = unpack(vim.api.nvim_buf_get_mark(0, mark_start_range))
-				selection_start_row = line
-				selection_start_col = col
-			end
+			-- handle range like :,15, and :15,.
+			-- local line, _ = unpack(vim.api.nvim_win_get_cursor(0))
+			-- selection_start_row = line
+			-- selection_start_col = 0
 
-			if mark_end_range ~= nil then
-				local line, col = unpack(vim.api.nvim_buf_get_mark(0, mark_end_range))
-				selection_end_row = line - 1
-				selection_end_col = col
-			end
-
-			local digit_range_pattern = "^(%d*),?(%d*)(%a+)"
-			---@type string|nil, string|nil, string|nil
-			local digit_start_range, digit_end_range, _ = cmdline:match(digit_range_pattern)
-			if digit_start_range ~= nil then
-				selection_start_row = tonumber(digit_start_range)
-				selection_start_col = 0
-			end
-
-			if digit_end_range ~= nil then
-				selection_end_row = tonumber(digit_end_range)
-				selection_end_col = 0
-			end
-
-			if selection_start_row == nil and selection_end_row == nil then
-				return
-			end
-
-			if selection_end_row == nil and selection_start_row ~= nil then
-				selection_end_row = selection_start_row
-			end
-
-			-- handle incompleted range, for example 10,2
-			if selection_end_row < selection_start_row then
-				vim.notify(
-					string.format(
-						"%s reversed range encountered %s",
-						ns,
-						vim.inspect({
-							start_row = selection_start_row,
-							start_col = selection_start_col,
-							end_row = selection_end_row,
-							end_col = selection_end_col,
-						})
-					),
-					vim.log.levels.DEBUG
-				)
-				return
-			end
-
-			-- NOTE not sure if we have missed anything, keep them here for now
+			-- -- handle incompleted range, for example 10,2
 			-- if selection_end_row < selection_start_row then
-			-- 	local temp_selection_start_row = selection_start_row
-			-- 	local temp_selection_start_col = selection_start_col
-			--
-			-- 	selection_start_row = selection_end_row
-			-- 	selection_start_col = selection_end_col
-			-- 	selection_end_row = temp_selection_start_row
-			-- 	selection_end_col = temp_selection_start_col
+			-- 	vim.notify(
+			-- 		string.format(
+			-- 			"%s reversed range encountered %s",
+			-- 			ns,
+			-- 			vim.inspect({
+			-- 				start_row = selection_start_row,
+			-- 				start_col = selection_start_col,
+			-- 				end_row = selection_end_row,
+			-- 				end_col = selection_end_col,
+			-- 			})
+			-- 		),
+			-- 		vim.log.levels.DEBUG
+			-- 	)
 			-- 	return
 			-- end
+			--
+			--
+			-- vim.notify(
+			-- 	string.format(
+			-- 		"%s final highlight range is %s",
+			-- 		ns,
+			-- 		vim.inspect({
+			-- 			start_row = selection_start_row,
+			-- 			start_col = selection_start_col,
+			-- 			end_row = selection_end_row,
+			-- 			end_col = selection_end_col,
+			-- 		})
+			-- 	),
+			-- 	vim.log.levels.DEBUG
+			-- )
 
-			selection_start_row = selection_start_row - 1
-			vim.notify(
-				string.format(
-					"%s final highlight range is %s",
-					ns,
-					vim.inspect({
-						start_row = selection_start_row,
-						start_col = selection_start_col,
-						end_row = selection_end_row,
-						end_col = selection_end_col,
-					})
-				),
-				vim.log.levels.DEBUG
-			)
+			local _, selection_start_row, selection_start_col, selection_end_kind, selection_end_row, selection_end_col =
+				get_range(cmdline)
+
+			if selection_start_row == nil or selection_end_row == nil then
+				return
+			end
 
 			vim.highlight.range(
 				ev.buf,
@@ -118,7 +148,7 @@ function M.setup(opts)
 				opts.highlight.group,
 				{ selection_start_row, selection_start_col },
 				{ selection_end_row, selection_end_col },
-				{ inclusive = mark_end_range ~= nil, priority = opts.highlight.priority, regtype = "v" }
+				{ inclusive = selection_end_kind == "mark", priority = opts.highlight.priority, regtype = "v" }
 			)
 		end,
 	})
