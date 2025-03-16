@@ -1,10 +1,14 @@
-local ns = vim.api.nvim_create_namespace("range-highlight")
+local ns = "range-highlight"
+local ns_id = vim.api.nvim_create_namespace(ns)
 local M = {}
 
----@alias SetupOpts { highlight_group: string }
+---@alias SetupOpts { highlight: { group: string, priority: number} }
 ---@type SetupOpts
 local default_opts = {
-	highlight_group = "Visual",
+	highlight = {
+		group = "Visual",
+		priority = 10,
+	},
 }
 ---@param opts SetupOpts
 function M.setup(opts)
@@ -13,8 +17,8 @@ function M.setup(opts)
 
 	vim.api.nvim_create_autocmd({ "CmdlineChanged" }, {
 		pattern = "*",
-		callback = function()
-			vim.api.nvim_buf_clear_namespace(0, ns, 0, -1)
+		callback = function(ev)
+			vim.api.nvim_buf_clear_namespace(ev.buf, ns_id, 0, -1)
 
 			local cmdline = vim.fn.getcmdline()
 			---@type number|nil
@@ -39,7 +43,7 @@ function M.setup(opts)
 			if mark_end_range ~= nil then
 				local line, col = unpack(vim.api.nvim_buf_get_mark(0, mark_end_range))
 				selection_end_row = line - 1
-				selection_end_col = col + 1
+				selection_end_col = col
 			end
 
 			local digit_range_pattern = "^(%d*),?(%d*)(%a+)"
@@ -65,30 +69,63 @@ function M.setup(opts)
 
 			-- handle incompleted range, for example 10,2
 			if selection_end_row < selection_start_row then
-				-- only early return, if it is digit range for both start and end
-				if digit_start_range ~= nil and digit_end_range ~= nil then
-					return
-				else
-					-- TODO handle swapped start and end
-				end
+				vim.notify(
+					string.format(
+						"%s reversed range encountered %s",
+						ns,
+						vim.inspect({
+							start_row = selection_start_row,
+							start_col = selection_start_col,
+							end_row = selection_end_row,
+							end_col = selection_end_col,
+						})
+					),
+					vim.log.levels.DEBUG
+				)
+				return
 			end
 
-			-- normalize line number
+			-- NOTE not sure if we have missed anything, keep them here for now
+			-- if selection_end_row < selection_start_row then
+			-- 	local temp_selection_start_row = selection_start_row
+			-- 	local temp_selection_start_col = selection_start_col
+			--
+			-- 	selection_start_row = selection_end_row
+			-- 	selection_start_col = selection_end_col
+			-- 	selection_end_row = temp_selection_start_row
+			-- 	selection_end_col = temp_selection_start_col
+			-- 	return
+			-- end
+
 			selection_start_row = selection_start_row - 1
+			vim.notify(
+				string.format(
+					"%s final highlight range is %s",
+					ns,
+					vim.inspect({
+						start_row = selection_start_row,
+						start_col = selection_start_col,
+						end_row = selection_end_row,
+						end_col = selection_end_col,
+					})
+				),
+				vim.log.levels.DEBUG
+			)
 
 			vim.highlight.range(
-				0,
-				ns,
-				opts.highlight_group,
+				ev.buf,
+				ns_id,
+				opts.highlight.group,
 				{ selection_start_row, selection_start_col },
-				{ selection_end_row, selection_end_col }
+				{ selection_end_row, selection_end_col },
+				{ inclusive = mark_end_range ~= nil, priority = opts.highlight.priority, regtype = "v" }
 			)
 		end,
 	})
 	vim.api.nvim_create_autocmd("CmdlineLeave", {
 		pattern = "*",
-		callback = function()
-			vim.api.nvim_buf_clear_namespace(0, ns, 0, -1)
+		callback = function(ev)
+			vim.api.nvim_buf_clear_namespace(ev.buf, ns_id, 0, -1)
 		end,
 	})
 end
