@@ -2,7 +2,7 @@ local ns = "range-highlight"
 local ns_id = vim.api.nvim_create_namespace(ns)
 local M = {}
 
----@alias SetupOpts { highlight: { group: string, priority: number} }
+---@alias SetupOpts { highlight: { group: string, priority: integer} }
 ---@type SetupOpts
 local default_opts = {
 	highlight = {
@@ -11,28 +11,53 @@ local default_opts = {
 	},
 }
 
----@param cmdline string
----@return number|nil, number|nil, number|nil, number|nil
-function M.get_charwise_range(cmdline)
-	local mark_pattern = "^'(.)[,;]?'(.)(%a+)"
+-- NOTE charwise operation is not supported by commandline right now, but keeping the implementation here
+-- ---@param buf_id integer
+-- ---@param cmdline string
+-- ---@return integer|nil, integer, integer|nil, integer
+-- function M.get_charwise_range(buf_id, cmdline)
+-- 	---@type integer|nil
+-- 	local selection_start_row = nil
+-- 	---@type integer
+-- 	local selection_start_col = 0
+--
+-- 	---@type integer|nil
+-- 	local selection_end_row = nil
+-- 	---@type integer
+-- 	local selection_end_col = 0
+-- 	local mark_pattern = "^'(.)[,;]?'(.)"
+--
+-- 	local ok, result = pcall(function()
+-- 		return vim.api.nvim_parse_cmd(cmdline, {})
+-- 	end)
+-- 	if not ok then
+-- 		return selection_start_row, selection_start_col, selection_end_row, selection_end_col
+-- 	end
+--
+-- 	local cmd_idx = cmdline:find(result.cmd)
+-- 	if cmd_idx == nil then
+-- 		return selection_start_row, selection_start_col, selection_end_row, selection_end_col
+-- 	end
+--
+-- 	cmdline = cmdline:sub(1, cmd_idx - 1)
+--
+-- 	local start_range, end_range = cmdline:match(mark_pattern)
+-- 	if start_range ~= nil then
+-- 		local line, col = unpack(vim.api.nvim_buf_get_mark(buf_id, start_range))
+-- 		selection_start_row = line
+-- 		selection_start_col = col
+-- 	end
+--
+-- 	if end_range ~= nil then
+-- 		local line, col = unpack(vim.api.nvim_buf_get_mark(buf_id, end_range))
+-- 		selection_end_row = line - 1
+-- 		selection_end_col = col
+-- 	end
+-- 	return selection_start_row, selection_start_col, selection_end_row, selection_end_col
+-- end
 
-	-- if start_range ~= nil then
-	-- 	local line, col = unpack(vim.api.nvim_buf_get_mark(0, start_range))
-	-- 	selection_start_row = line
-	-- 	selection_start_col = col
-	-- 	selection_start_kind = "mark"
-	-- end
-	--
-	-- if end_range ~= nil then
-	-- 	local line, col = unpack(vim.api.nvim_buf_get_mark(0, end_range))
-	-- 	selection_end_row = line - 1
-	-- 	selection_end_col = col
-	-- 	selection_end_kind = "mark"
-	-- end
-end
-
 ---@param cmdline string
----@return number|nil, number|nil, number|nil, number|nil
+---@return integer|nil, integer|nil, integer|nil, integer|nil
 function M.get_linewise_range(cmdline)
 	local DEFAULT_COMMAND_WITH_RANGE = "print"
 	local ok, result = pcall(function()
@@ -50,7 +75,7 @@ function M.get_linewise_range(cmdline)
 				return nil, nil, nil, nil
 			end
 
-			dummy_cmdline = cmdline:sub(1, cmd_idx) .. DEFAULT_COMMAND_WITH_RANGE
+			dummy_cmdline = cmdline:sub(1, cmd_idx - 1) .. DEFAULT_COMMAND_WITH_RANGE
 		end
 		ok, result = pcall(function()
 			return vim.api.nvim_parse_cmd(dummy_cmdline, {})
@@ -60,14 +85,14 @@ function M.get_linewise_range(cmdline)
 		end
 	end
 
-	---@type number|nil
+	---@type integer|nil
 	local selection_start_row = nil
-	---@type number|nil
+	---@type integer|nil
 	local selection_start_col = nil
 
-	---@type number|nil
+	---@type integer|nil
 	local selection_end_row = nil
-	---@type number|nil
+	---@type integer|nil
 	local selection_end_col = nil
 
 	if result.range == nil or #result.range == 0 then
@@ -120,14 +145,14 @@ function M.setup(opts)
 			vim.api.nvim_buf_clear_namespace(ev.buf, ns_id, 0, -1)
 
 			local cmdline = vim.fn.getcmdline()
-			---@type number|nil
+			---@type integer|nil
 			local selection_start_row = nil
-			---@type number|nil
+			---@type integer|nil
 			local selection_start_col = nil
 
-			---@type number|nil
+			---@type integer|nil
 			local selection_end_row = nil
-			---@type number|nil
+			---@type integer|nil
 			local selection_end_col = nil
 
 			selection_start_row, selection_start_col, selection_end_row, selection_end_col =
@@ -143,8 +168,8 @@ function M.setup(opts)
 				opts.highlight.group,
 				{ selection_start_row, selection_start_col },
 				{ selection_end_row, selection_end_col },
-				-- TODO detect mark and make this true, when the matching is not linewise but charwise
-				{ inclusive = false, priority = opts.highlight.priority, regtype = "v" }
+				-- NOTE commandline only support linewise operation now, but save this condition for future
+				{ inclusive = selection_end_col ~= 0, priority = opts.highlight.priority, regtype = "v" }
 			)
 			vim.cmd.redraw()
 		end,
