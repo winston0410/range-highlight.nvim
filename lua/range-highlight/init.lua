@@ -11,7 +11,7 @@ local default_opts = {
 	},
 }
 
----@alias RangeKind "mark" | "digit" | nil
+---@alias RangeKind "mark" | "digit" | "special" |  nil
 ---@param cmd string
 ---@return RangeKind, number|nil, number|nil, RangeKind, number|nil, number|nil
 local function get_range(cmd)
@@ -19,17 +19,20 @@ local function get_range(cmd)
 	local selection_start_row = nil
 	---@type number|nil
 	local selection_start_col = nil
-	---@type "mark" | "digit" | nil
+	---@type RangeKind
 	local selection_start_kind = nil
 	---@type number|nil
 	local selection_end_row = nil
 	---@type number|nil
 	local selection_end_col = nil
-	---@type "mark" | "digit" | nil
+	---@type RangeKind
 	local selection_end_kind = nil
 
-	local patterns =
-		{ { kind = "mark", pattern = "^'(.)[,;]?'(.)(%a+)" }, { kind = "digit", pattern = "^(%d*)[,;]?(%d*)(%a+)" } }
+	local patterns = {
+		{ kind = "mark", pattern = "^'(.)[,;]?'(.)(%a+)" },
+		{ kind = "digit", pattern = "^(%d*)[,;]?(%d*)(%a+)" },
+		{ kind = "special", pattern = "^([%.%$%%])[,;]?([%.%$%%])(%a+)" },
+	}
 
 	for _, item in ipairs(patterns) do
 		if selection_start_row ~= nil and selection_end_row ~= nil then
@@ -51,7 +54,7 @@ local function get_range(cmd)
 				selection_end_col = col
 				selection_end_kind = "mark"
 			end
-		else
+		elseif item.kind == "digit" then
 			if start_range ~= nil then
 				selection_start_row = tonumber(start_range)
 				selection_start_col = 0
@@ -63,9 +66,16 @@ local function get_range(cmd)
 				selection_end_col = 0
 				selection_end_kind = "digit"
 			end
+		elseif item.kind == "special" then
+			-- handle range like :,15, and :15,.
+			-- local line, _ = unpack(vim.api.nvim_win_get_cursor(0))
+			-- selection_start_row = line
+			-- selection_start_col = 0
+			-- vim.print("hit special", start_range, end_range)
 		end
 	end
 
+	-- TODO make this conditional and only for digit
 	if selection_start_row ~= nil and selection_end_row == nil then
 		selection_end_kind = selection_start_kind
 		selection_end_row = selection_start_row
@@ -96,11 +106,6 @@ function M.setup(opts)
 			local cmdline = vim.fn.getcmdline()
 
 			-- handle range like :15
-
-			-- handle range like :,15, and :15,.
-			-- local line, _ = unpack(vim.api.nvim_win_get_cursor(0))
-			-- selection_start_row = line
-			-- selection_start_col = 0
 
 			-- -- handle incompleted range, for example 10,2
 			-- if selection_end_row < selection_start_row then
