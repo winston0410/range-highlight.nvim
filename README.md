@@ -1,6 +1,6 @@
 # range-highlight.nvim
 
-An extremely lightweight plugin (~ 120loc) that hightlights ranges you have entered in commandline.
+An extremely lightweight plugin (~ 120loc) that highlights ranges you have entered in command line.
 
 ![Demo for using range-highlight](./demo.gif)
 
@@ -25,8 +25,6 @@ An extremely lightweight plugin (~ 120loc) that hightlights ranges you have ente
 - Mark range highlight (`:'a,20`)
 
 - Last line and whole file highlight (`:4,$`, `:%`)
-
-- Pattern range highlight (`:/hello/d`, `?world?d`)
 
 ## Installation
 
