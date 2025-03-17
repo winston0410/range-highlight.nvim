@@ -8,10 +8,11 @@ local default_opts = {
 	highlight = {
 		group = "Visual",
 		priority = 10,
+		-- if you want to highlight empty line, set it to true
 		to_eol = false,
 	},
-	-- NOTE the command here does not accept shorthand
-	excluded = { cmd = { "substitute" } },
+	-- the command here does not accept shorthand
+	excluded = { cmd = {} },
 }
 
 -- NOTE charwise operation is not supported by commandline right now, but keeping the implementation here

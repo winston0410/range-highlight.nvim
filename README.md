@@ -56,7 +56,21 @@ require("range-highlight").setup({
 	highlight = {
 		group = "Visual",
 		priority = 10,
+		-- if you want to highlight empty line, set it to true
+		to_eol = false,
 	},
+	-- disable range highlight, if the cmd is matched here. Value here does not accept shorthand
+	excluded = { cmd = {} },
+})
+```
+
+### Disable highlight when you run `:%s`
+
+If you want to prevent range highlighting, when using a substitute command, you can use the following exclusion list.
+
+```lua
+require("range-highlight").setup({ 
+	excluded = { cmd = { "substitute" } },
 })
 ```
 
