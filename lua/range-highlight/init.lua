@@ -2,12 +2,13 @@ local ns = "range-highlight"
 local ns_id = vim.api.nvim_create_namespace(ns)
 local M = {}
 
----@alias SetupOpts { highlight: { group: string, priority: integer} }
+---@alias SetupOpts { highlight: { group: string, priority: integer, to_eol: boolean} }
 ---@type SetupOpts
 local default_opts = {
 	highlight = {
 		group = "Visual",
 		priority = 10,
+		to_eol = false,
 	},
 }
 
@@ -57,8 +58,17 @@ local default_opts = {
 -- end
 
 ---@param cmdline string
----@return integer|nil, integer|nil, integer|nil, integer|nil
+---@return integer|nil, integer, integer|nil, integer
 function M.get_linewise_range(cmdline)
+	---@type integer|nil
+	local selection_start_row = nil
+	---@type integer
+	local selection_start_col = 0
+
+	---@type integer|nil
+	local selection_end_row = nil
+	---@type integer
+	local selection_end_col = 0
 	local DEFAULT_COMMAND_WITH_RANGE = "print"
 	local ok, result = pcall(function()
 		return vim.api.nvim_parse_cmd(cmdline, {})
@@ -72,7 +82,7 @@ function M.get_linewise_range(cmdline)
 			-- NOTE parse again, with a command with range, as nvim_parse_cmd would not show range for command that does not support range
 			local cmd_idx = cmdline:find(result.cmd)
 			if cmd_idx == nil then
-				return nil, nil, nil, nil
+				return selection_start_row, selection_start_col, selection_end_row, selection_end_col
 			end
 
 			dummy_cmdline = cmdline:sub(1, cmd_idx - 1) .. DEFAULT_COMMAND_WITH_RANGE
@@ -81,22 +91,12 @@ function M.get_linewise_range(cmdline)
 			return vim.api.nvim_parse_cmd(dummy_cmdline, {})
 		end)
 		if not ok then
-			return nil, nil, nil, nil
+			return selection_start_row, selection_start_col, selection_end_row, selection_end_col
 		end
 	end
 
-	---@type integer|nil
-	local selection_start_row = nil
-	---@type integer|nil
-	local selection_start_col = nil
-
-	---@type integer|nil
-	local selection_end_row = nil
-	---@type integer|nil
-	local selection_end_col = nil
-
 	if result.range == nil or #result.range == 0 then
-		return nil, nil, nil, nil
+		return selection_start_row, selection_start_col, selection_end_row, selection_end_col
 	end
 
 	if #result.range == 2 then
@@ -116,7 +116,7 @@ function M.get_linewise_range(cmdline)
 			string.format("%s: unhandled vim.api.nvim_parse_cmd range %s.", ns, #result.range),
 			vim.log.levels.ERROR
 		)
-		return nil, nil, nil, nil
+		return selection_start_row, selection_start_col, selection_end_row, selection_end_col
 	end
 
 	if selection_end_row < selection_start_row then
@@ -162,15 +162,15 @@ function M.setup(opts)
 				return
 			end
 
-			vim.highlight.range(
-				ev.buf,
-				ns_id,
-				opts.highlight.group,
-				{ selection_start_row, selection_start_col },
-				{ selection_end_row, selection_end_col },
-				-- NOTE commandline only support linewise operation now, but save this condition for future
-				{ inclusive = selection_end_col ~= 0, priority = opts.highlight.priority, regtype = "v" }
-			)
+			-- NOTE use this instead of vim.highlight.range, so we can highlight the background instead of text
+			vim.api.nvim_buf_set_extmark(ev.buf, ns_id, selection_start_row, selection_start_col, {
+				end_line = selection_end_row,
+				end_col = selection_end_col,
+				hl_eol = opts.highlight.to_eol,
+				hl_group = opts.highlight.group,
+				priority = opts.highlight.priority,
+			})
+
 			vim.cmd.redraw()
 		end,
 	})
