@@ -15,51 +15,6 @@ local default_opts = {
 	excluded = { cmd = {} },
 }
 
--- NOTE charwise operation is not supported by commandline right now, but keeping the implementation here
--- ---@param buf_id integer
--- ---@param cmdline string
--- ---@return integer|nil, integer, integer|nil, integer
--- function M.get_charwise_range(buf_id, cmdline)
--- 	---@type integer|nil
--- 	local selection_start_row = nil
--- 	---@type integer
--- 	local selection_start_col = 0
---
--- 	---@type integer|nil
--- 	local selection_end_row = nil
--- 	---@type integer
--- 	local selection_end_col = 0
--- 	local mark_pattern = "^'(.)[,;]?'(.)"
---
--- 	local ok, result = pcall(function()
--- 		return vim.api.nvim_parse_cmd(cmdline, {})
--- 	end)
--- 	if not ok then
--- 		return selection_start_row, selection_start_col, selection_end_row, selection_end_col
--- 	end
---
--- 	local cmd_idx = cmdline:find(result.cmd)
--- 	if cmd_idx == nil then
--- 		return selection_start_row, selection_start_col, selection_end_row, selection_end_col
--- 	end
---
--- 	cmdline = cmdline:sub(1, cmd_idx - 1)
---
--- 	local start_range, end_range = cmdline:match(mark_pattern)
--- 	if start_range ~= nil then
--- 		local line, col = unpack(vim.api.nvim_buf_get_mark(buf_id, start_range))
--- 		selection_start_row = line
--- 		selection_start_col = col
--- 	end
---
--- 	if end_range ~= nil then
--- 		local line, col = unpack(vim.api.nvim_buf_get_mark(buf_id, end_range))
--- 		selection_end_row = line - 1
--- 		selection_end_col = col
--- 	end
--- 	return selection_start_row, selection_start_col, selection_end_row, selection_end_col
--- end
-
 ---@param opts  SetupOpts
 ---@param cmdline string
 ---@return integer|nil, integer, integer|nil, integer
@@ -78,25 +33,43 @@ function M.get_linewise_range(cmdline, opts)
 		return vim.api.nvim_parse_cmd(cmdline, {})
 	end)
 
+	-- Example invalid commands that would end up here
+	-- E481: No range allowed
+	-- 1. 20map
+	-- E464: Ambiguous use of user-defined command
+	-- 2. 10C
+	-- command not inputted yet
+	-- 3. 10,20
 	if not ok then
-		local dummy_cmdline = cmdline
-		if result.cmd == nil then
-			dummy_cmdline = cmdline .. DEFAULT_COMMAND_WITH_RANGE
-		else
-			-- NOTE parse again, with a command with range, as nvim_parse_cmd would not show range for command that does not support range
-			local cmd_idx = cmdline:find(result.cmd)
-			if cmd_idx == nil then
-				return selection_start_row, selection_start_col, selection_end_row, selection_end_col
+		local start_idx = nil
+		repeat
+			local sub_idx = start_idx
+			if sub_idx ~= nil then
+				sub_idx = sub_idx - 1
+			end
+			local sliced_cmdline = cmdline:sub(1, sub_idx)
+			ok, result = pcall(function()
+				return vim.api.nvim_parse_cmd(sliced_cmdline .. DEFAULT_COMMAND_WITH_RANGE, {})
+			end)
+			if ok then
+				break
 			end
 
-			dummy_cmdline = cmdline:sub(1, cmd_idx - 1) .. DEFAULT_COMMAND_WITH_RANGE
-		end
-		ok, result = pcall(function()
-			return vim.api.nvim_parse_cmd(dummy_cmdline, {})
-		end)
-		if not ok then
-			return selection_start_row, selection_start_col, selection_end_row, selection_end_col
-		end
+			local search_idx = start_idx
+			if search_idx ~= nil then
+				search_idx = search_idx + 1
+			end
+			local match_start_idx = string.find(cmdline, "%a+", search_idx)
+
+			if match_start_idx == nil then
+				break
+			end
+			start_idx = match_start_idx
+		until ok
+	end
+
+	if not ok then
+		return selection_start_row, selection_start_col, selection_end_row, selection_end_col
 	end
 
 	if vim.list_contains(opts.excluded.cmd, result.cmd) then
