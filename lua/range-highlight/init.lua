@@ -163,14 +163,15 @@ function M.setup(opts)
 			end
 
 			-- NOTE use this instead of vim.highlight.range, so we can highlight the background instead of text
-			vim.api.nvim_buf_set_extmark(ev.buf, ns_id, selection_start_row, selection_start_col, {
-				end_line = selection_end_row,
-				end_col = selection_end_col,
-				hl_eol = opts.highlight.to_eol,
-				hl_group = opts.highlight.group,
-				priority = opts.highlight.priority,
-			})
-
+			pcall(function()
+				vim.api.nvim_buf_set_extmark(ev.buf, ns_id, selection_start_row, selection_start_col, {
+					end_line = selection_end_row,
+					end_col = selection_end_col,
+					hl_eol = opts.highlight.to_eol,
+					hl_group = opts.highlight.group,
+					priority = opts.highlight.priority,
+				})
+			end)
 			vim.cmd.redraw()
 		end,
 	})
