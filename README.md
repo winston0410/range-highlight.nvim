@@ -26,6 +26,8 @@ An extremely lightweight plugin (~ 120loc) that highlights ranges you have enter
 
 - Last line and whole file highlight (`:4,$`, `:%`)
 
+- Pattern range highlight (`:/hello/d, ?world?d`)
+
 ## Installation
 
 `range-highlight.nvim` requires a minimum version of NeoVim 0.10.0.
@@ -35,12 +37,14 @@ You can install it using any NeoVim package manager. For example:
 ### `lazy.nvim`
 
 ```lua
-{
-    "winston0410/range-highlight.nvim",
-    branch = "refactor/0.10.x",
-    event = { "CmdlineEnter" },
-    opts = {},
-},
+require("lazy").setup({
+    {
+        "winston0410/range-highlight.nvim",
+        event = { "CmdlineEnter" },
+        opts = {},
+    }
+})
+,
 ```
 
 ## Configuration
@@ -56,10 +60,3 @@ require("range-highlight").setup({
 })
 ```
 
-### Range highlight not working for your command?
-
-If the range highlight doesn't work for your command, you can contribute it into the above list
-
-## Acknowledgement
-
-Thank you folks from [gitters](https://gitter.im/neovim/neovim) for helping me out with this plugin.
