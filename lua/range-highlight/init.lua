@@ -2,7 +2,7 @@ local ns = "range-highlight"
 local ns_id = vim.api.nvim_create_namespace(ns)
 local M = {}
 
----@alias SetupOpts { highlight: { group: string, priority: integer, to_eol: boolean} }
+---@alias SetupOpts { highlight: { group: string, priority: integer, to_eol: boolean}, excluded: { cmd: string[]}}
 ---@type SetupOpts
 local default_opts = {
 	highlight = {
@@ -10,6 +10,8 @@ local default_opts = {
 		priority = 10,
 		to_eol = false,
 	},
+	-- NOTE the command here does not accept shorthand
+	excluded = { cmd = { "substitute" } },
 }
 
 -- NOTE charwise operation is not supported by commandline right now, but keeping the implementation here
@@ -57,9 +59,10 @@ local default_opts = {
 -- 	return selection_start_row, selection_start_col, selection_end_row, selection_end_col
 -- end
 
+---@param opts  SetupOpts
 ---@param cmdline string
 ---@return integer|nil, integer, integer|nil, integer
-function M.get_linewise_range(cmdline)
+function M.get_linewise_range(cmdline, opts)
 	---@type integer|nil
 	local selection_start_row = nil
 	---@type integer
@@ -73,6 +76,10 @@ function M.get_linewise_range(cmdline)
 	local ok, result = pcall(function()
 		return vim.api.nvim_parse_cmd(cmdline, {})
 	end)
+
+	if vim.list_contains(opts.excluded.cmd, result.cmd) then
+		return selection_start_row, selection_start_col, selection_end_row, selection_end_col
+	end
 
 	if not ok then
 		local dummy_cmdline = cmdline
@@ -147,16 +154,16 @@ function M.setup(opts)
 			local cmdline = vim.fn.getcmdline()
 			---@type integer|nil
 			local selection_start_row = nil
-			---@type integer|nil
-			local selection_start_col = nil
+			---@type integer
+			local selection_start_col = 0
 
 			---@type integer|nil
 			local selection_end_row = nil
-			---@type integer|nil
-			local selection_end_col = nil
+			---@type integer
+			local selection_end_col = 0
 
 			selection_start_row, selection_start_col, selection_end_row, selection_end_col =
-				M.get_linewise_range(cmdline)
+				M.get_linewise_range(cmdline, opts)
 
 			if selection_start_row == nil or selection_end_row == nil then
 				return
@@ -171,8 +178,8 @@ function M.setup(opts)
 					hl_group = opts.highlight.group,
 					priority = opts.highlight.priority,
 				})
+				vim.cmd.redraw()
 			end)
-			vim.cmd.redraw()
 		end,
 	})
 	vim.api.nvim_create_autocmd("CmdlineLeave", {
