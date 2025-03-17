@@ -78,10 +78,6 @@ function M.get_linewise_range(cmdline, opts)
 		return vim.api.nvim_parse_cmd(cmdline, {})
 	end)
 
-	if vim.list_contains(opts.excluded.cmd, result.cmd) then
-		return selection_start_row, selection_start_col, selection_end_row, selection_end_col
-	end
-
 	if not ok then
 		local dummy_cmdline = cmdline
 		if result.cmd == nil then
@@ -101,6 +97,10 @@ function M.get_linewise_range(cmdline, opts)
 		if not ok then
 			return selection_start_row, selection_start_col, selection_end_row, selection_end_col
 		end
+	end
+
+	if vim.list_contains(opts.excluded.cmd, result.cmd) then
+		return selection_start_row, selection_start_col, selection_end_row, selection_end_col
 	end
 
 	if result.range == nil or #result.range == 0 then
