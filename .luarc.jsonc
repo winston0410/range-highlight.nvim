@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+  "runtime.version": "LuaJIT",
+  "runtime.path": ["lua/?.lua", "lua/?/init.lua"],
+  "diagnostics.globals": ["vim"],
+  "workspace.checkThirdParty": false,
+  "workspace.library": [
+    "$VIMRUNTIME",
+    "$XDG_DATA_HOME/nvim/lazy",
+    // REF https://github.com/LuaLS/lua-language-server/tree/master/meta/3rd
+    "${3rd}/luv/library",
+    "${3rd}/luassert/library",
+  ],
+}
