@@ -2,7 +2,25 @@ local ns = "range-highlight"
 local ns_id = vim.api.nvim_create_namespace(ns)
 local M = {}
 
----@alias SetupOpts { highlight: { group: string, priority: integer, to_eol: boolean}, excluded: { cmd: string[]}}
+local function debounce(ms, fn)
+	if ms == 0 then
+		return fn
+	end
+	local timer = vim.loop.new_timer()
+
+	return function(...)
+		local argv = { ... }
+		if timer == nil then
+			return
+		end
+		timer:start(ms, 0, function()
+			timer:stop()
+			vim.schedule_wrap(fn)(unpack(argv))
+		end)
+	end
+end
+
+---@alias SetupOpts { highlight: { group: string, priority: integer, to_eol: boolean}, excluded: { cmd: string[]}, debounce: { wait: integer }}
 ---@type SetupOpts
 local default_opts = {
 	highlight = {
@@ -13,6 +31,10 @@ local default_opts = {
 	},
 	-- the command here does not accept shorthand
 	excluded = { cmd = {} },
+	debounce = {
+		-- how long to debounce, set to 0 to disable
+		wait = 100,
+	},
 }
 
 ---@param cmdline string
@@ -121,7 +143,7 @@ function M.setup(opts)
 
 	vim.api.nvim_create_autocmd({ "CmdlineChanged" }, {
 		pattern = "*",
-		callback = function(ev)
+		callback = debounce(M.opts.debounce.wait, function(ev)
 			vim.api.nvim_buf_clear_namespace(ev.buf, ns_id, 0, -1)
 
 			local cmdline = vim.fn.getcmdline()
@@ -153,7 +175,7 @@ function M.setup(opts)
 				})
 				vim.cmd.redraw()
 			end)
-		end,
+		end),
 	})
 	vim.api.nvim_create_autocmd("CmdlineLeave", {
 		pattern = "*",

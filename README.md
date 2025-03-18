@@ -61,6 +61,10 @@ require("range-highlight").setup({
 	},
 	-- disable range highlight, if the cmd is matched here. Value here does not accept shorthand
 	excluded = { cmd = {} },
+	debounce = {
+		-- how long to debounce, set to 0 to disable
+		wait = 100,
+	},
 })
 ```
 
