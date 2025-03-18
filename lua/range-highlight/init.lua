@@ -15,10 +15,9 @@ local default_opts = {
 	excluded = { cmd = {} },
 }
 
----@param opts  SetupOpts
 ---@param cmdline string
 ---@return integer|nil, integer, integer|nil, integer
-function M.get_linewise_range(cmdline, opts)
+function M.get_linewise_range(cmdline)
 	---@type integer|nil
 	local selection_start_row = nil
 	---@type integer
@@ -72,7 +71,7 @@ function M.get_linewise_range(cmdline, opts)
 		return selection_start_row, selection_start_col, selection_end_row, selection_end_col
 	end
 
-	if vim.list_contains(opts.excluded.cmd, result.cmd) then
+	if vim.list_contains(M.opts.excluded.cmd, result.cmd) then
 		return selection_start_row, selection_start_col, selection_end_row, selection_end_col
 	end
 
@@ -118,7 +117,7 @@ end
 ---@param opts SetupOpts
 function M.setup(opts)
 	---@type SetupOpts
-	opts = vim.tbl_deep_extend("force", default_opts, opts or {})
+	M.opts = vim.tbl_deep_extend("force", default_opts, opts or {})
 
 	vim.api.nvim_create_autocmd({ "CmdlineChanged" }, {
 		pattern = "*",
@@ -137,7 +136,7 @@ function M.setup(opts)
 			local selection_end_col = 0
 
 			selection_start_row, selection_start_col, selection_end_row, selection_end_col =
-				M.get_linewise_range(cmdline, opts)
+				M.get_linewise_range(cmdline)
 
 			if selection_start_row == nil or selection_end_row == nil then
 				return
@@ -148,9 +147,9 @@ function M.setup(opts)
 				vim.api.nvim_buf_set_extmark(ev.buf, ns_id, selection_start_row, selection_start_col, {
 					end_line = selection_end_row,
 					end_col = selection_end_col,
-					hl_eol = opts.highlight.to_eol,
-					hl_group = opts.highlight.group,
-					priority = opts.highlight.priority,
+					hl_eol = M.opts.highlight.to_eol,
+					hl_group = M.opts.highlight.group,
+					priority = M.opts.highlight.priority,
 				})
 				vim.cmd.redraw()
 			end)
