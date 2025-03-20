@@ -97,6 +97,19 @@ function M.get_linewise_range(cmdline)
 		return selection_start_row, selection_start_col, selection_end_row, selection_end_col
 	end
 
+	-- TODO nvim_parse_cmd seems to mix up count and range, so we cannot highlight implicit range now.
+	-- if result.range == nil or #result.range == 0 then
+	-- 	local row, _ = unpack(vim.api.nvim_win_get_cursor(0))
+	-- 	local cmdline_with_range = string.format("%s%s", "15", "messages")
+	-- 	-- local cmdline_with_range = string.format("%s%s", row, cmdline)
+	-- 	local ok2, result2 = pcall(function()
+	-- 		return vim.api.nvim_parse_cmd(cmdline_with_range, {})
+	-- 	end)
+	-- 	vim.print("result", result2.count, result2.range)
+	-- 	-- vim.print("cmdline with range", cmdline_with_range)
+	-- 	-- vim.print("is ok", ok)
+	-- end
+
 	if result.range == nil or #result.range == 0 then
 		return selection_start_row, selection_start_col, selection_end_row, selection_end_col
 	end
