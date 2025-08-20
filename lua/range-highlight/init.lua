@@ -158,7 +158,9 @@ function M.setup(opts)
 		pattern = "*",
 		callback = debounce(M.opts.debounce.wait, function(ev)
 			local ok = pcall(function()
-				vim.api.nvim_buf_clear_namespace(ev.buf, ns_id, 0, -1)
+				if vim.api.nvim_buf_is_valid(ev.buf) then
+					vim.api.nvim_buf_clear_namespace(ev.buf, ns_id, 0, -1)
+				end
 			end)
 
 			if not ok then
